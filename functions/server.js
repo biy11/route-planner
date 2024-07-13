@@ -28,38 +28,65 @@ exports.handler = async (event) => {
     const origin = `${currentLoc.lat},${currentLoc.lng}`;
     const destination = waypoints.split('|').pop();
 
-    // Use Directions API to get the optimized order
-    const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&waypoints=optimize:true|${waypoints}&key=${GOOGLE_API_KEY}`;
-    console.log('Directions API URL:', directionsUrl); // Log the URL for debugging
+    // Use Routes API to get the optimized order
+    const routesUrl = `https://routes.googleapis.com/directions/v2:computeRoutes?key=${GOOGLE_API_KEY}`;
+    const routesBody = {
+      origin: {
+        location: {
+          latLng: {
+            latitude: currentLoc.lat,
+            longitude: currentLoc.lng,
+          },
+        },
+      },
+      destination: {
+        location: {
+          latLng: {
+            latitude: locations[locations.length - 1].lat,
+            longitude: locations[locations.length - 1].lng,
+          },
+        },
+      },
+      intermediates: locations.slice(0, -1).map(loc => ({
+        location: {
+          latLng: {
+            latitude: loc.lat,
+            longitude: loc.lng,
+          },
+        },
+      })),
+      travelMode: 'DRIVE',
+      routingPreference: 'TRAFFIC_AWARE',
+    };
 
-    const directionsResponse = await fetch(directionsUrl);
-    const directionsData = await directionsResponse.json();
-    console.log('Directions API Response:', directionsData); // Log the response for debugging
+    const routesResponse = await fetch(routesUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(routesBody),
+    });
+    const routesData = await routesResponse.json();
+    console.log('Routes API Response:', routesData);
 
-    if (directionsData.status !== 'OK') {
-      throw new Error(`Directions API failed: ${directionsData.error_message}`);
+    if (routesData.error) {
+      throw new Error(`Routes API failed: ${routesData.error.message}`);
     }
 
-    const optimizedOrder = directionsData.routes[0].waypoint_order;
-    console.log('Optimized Order:', optimizedOrder);
-
-    // Rearrange waypoints according to the optimized order
-    const optimizedWaypoints = optimizedOrder.map(index => locations[index]);
-    const optimizedWaypointsStr = optimizedWaypoints.map(loc => `${loc.lat},${loc.lng}`).join('|');
-
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${optimizedWaypointsStr}&travelmode=driving`;
+    const optimizedWaypoints = routesData.routes[0].legs[0].steps.map(step => `${step.startLocation.latitude},${step.startLocation.longitude}`).join('|');
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${optimizedWaypoints}&travelmode=driving`;
 
     console.log('Google Maps URL:', googleMapsUrl);
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ googleMapsUrl })
+      body: JSON.stringify({ googleMapsUrl }),
     };
   } catch (error) {
     console.error('Error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({ error: error.message }),
     };
   }
 };
