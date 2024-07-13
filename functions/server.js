@@ -68,13 +68,22 @@ exports.handler = async (event) => {
       body: JSON.stringify(routesBody),
     });
     const routesData = await routesResponse.json();
-    console.log('Routes API Response:', routesData);
+    console.log('Routes API Response:', routesData); // Log the response for debugging
 
     if (routesData.error) {
       throw new Error(`Routes API failed: ${routesData.error.message}`);
     }
 
-    const optimizedWaypoints = routesData.routes[0].legs[0].steps.map(step => `${step.startLocation.latitude},${step.startLocation.longitude}`).join('|');
+    const route = routesData.routes && routesData.routes[0];
+    if (!route) {
+      throw new Error('No route found');
+    }
+
+    const optimizedWaypoints = route.legs && route.legs[0] && route.legs[0].steps ? route.legs[0].steps.map(step => `${step.startLocation.latitude},${step.startLocation.longitude}`).join('|') : '';
+    if (!optimizedWaypoints) {
+      throw new Error('No waypoints found');
+    }
+
     const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${optimizedWaypoints}&travelmode=driving`;
 
     console.log('Google Maps URL:', googleMapsUrl);
