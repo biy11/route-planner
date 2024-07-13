@@ -30,11 +30,14 @@ exports.handler = async (event) => {
 
     // Use Directions API to get the optimized order
     const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&waypoints=optimize:true|${waypoints}&key=${GOOGLE_API_KEY}`;
+    console.log('Directions API URL:', directionsUrl); // Log the URL for debugging
+
     const directionsResponse = await fetch(directionsUrl);
     const directionsData = await directionsResponse.json();
+    console.log('Directions API Response:', directionsData); // Log the response for debugging
 
     if (directionsData.status !== 'OK') {
-      throw new Error('Directions API failed');
+      throw new Error(`Directions API failed: ${directionsData.error_message}`);
     }
 
     const optimizedOrder = directionsData.routes[0].waypoint_order;
