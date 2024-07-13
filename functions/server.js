@@ -24,9 +24,8 @@ exports.handler = async (event) => {
     console.log('Current Location:', currentLoc);
     console.log('Locations:', locations);
 
-    const waypoints = locations.map(loc => `${loc.lat},${loc.lng}`).join('|');
     const origin = `${currentLoc.lat},${currentLoc.lng}`;
-    const destination = waypoints.split('|').pop();
+    const destination = `${locations[locations.length - 1].lat},${locations[locations.length - 1].lng}`;
 
     // Use Routes API to get the optimized order
     const routesUrl = `https://routes.googleapis.com/directions/v2:computeRoutes?key=${GOOGLE_API_KEY}`;
@@ -57,16 +56,25 @@ exports.handler = async (event) => {
       })),
       travelMode: 'DRIVE',
       routingPreference: 'TRAFFIC_AWARE',
+      computeAlternativeRoutes: false,
+      routeModifiers: {
+        avoidTolls: false,
+        avoidHighways: false,
+        avoidFerries: false
+      },
+      languageCode: 'en-US',
+      units: 'IMPERIAL'
     };
 
     const routesResponse = await fetch(routesUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline', // Specify the fields you need
+        'X-Goog-FieldMask': 'routes.legs.start_location,routes.legs.end_location,routes.legs.steps', // Specify the fields you need
       },
       body: JSON.stringify(routesBody),
     });
+
     const routesData = await routesResponse.json();
     console.log('Routes API Response:', routesData); // Log the response for debugging
 
@@ -79,11 +87,12 @@ exports.handler = async (event) => {
       throw new Error('No route found');
     }
 
-    const optimizedWaypoints = route.legs && route.legs[0] && route.legs[0].steps ? route.legs[0].steps.map(step => `${step.startLocation.latitude},${step.startLocation.longitude}`).join('|') : '';
-    if (!optimizedWaypoints) {
+    const waypointsOrder = route.waypoint_order || [];
+    if (waypointsOrder.length === 0) {
       throw new Error('No waypoints found');
     }
 
+    const optimizedWaypoints = waypointsOrder.map(index => locations[index]).map(loc => `${loc.lat},${loc.lng}`).join('|');
     const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${optimizedWaypoints}&travelmode=driving`;
 
     console.log('Google Maps URL:', googleMapsUrl);
