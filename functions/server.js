@@ -63,6 +63,7 @@ exports.handler = async (event) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline', // Specify the fields you need
       },
       body: JSON.stringify(routesBody),
     });
