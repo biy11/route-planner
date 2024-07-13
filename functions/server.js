@@ -25,10 +25,10 @@ exports.handler = async (event) => {
     console.log('Locations:', locations);
 
     const origin = `${currentLoc.lat},${currentLoc.lng}`;
-    const destination = `${locations[locations.length - 1].lat},${locations[locations.length - 1].lng}`;
+    const destination = `${currentLoc.lat},${currentLoc.lng}`; // Loop back to origin
 
     // Use Directions API to get the optimized order
-    const waypoints = locations.slice(0, -1).map(loc => `${loc.lat},${loc.lng}`).join('|');
+    const waypoints = locations.map(loc => `${loc.lat},${loc.lng}`).join('|');
     const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&waypoints=optimize:true|${waypoints}&key=${GOOGLE_API_KEY}`;
     console.log('Directions API URL:', directionsUrl); // Log the URL for debugging
 

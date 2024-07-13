@@ -63,7 +63,9 @@
             const addresses = [];
             const addressInputs = document.getElementsByClassName('autocomplete-address');
             for (let i = 0; i < addressInputs.length; i++) {
-                addresses.push(addressInputs[i].value);
+                if (addressInputs[i].value) {
+                    addresses.push(addressInputs[i].value);
+                }
             }
 
             console.log('Current Location:', currentLocation);
