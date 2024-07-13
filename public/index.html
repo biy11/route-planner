@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Route Planner</title>
+</head>
+<body>
+    <h1>Route Planner</h1>
+    <form id="route-form">
+        <label for="current-location">Current Location:</label>
+        <input type="text" id="current-location" name="current-location" required><br><br>
+        <label for="address-1">Address 1:</label>
+        <input type="text" id="address-1" name="address-1" class="autocomplete-address"><br><br>
+        <label for="address-2">Address 2:</label>
+        <input type="text" id="address-2" name="address-2" class="autocomplete-address"><br><br>
+        <!-- Add more address fields as needed -->
+        <button type="submit">Calculate Route</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        async function loadGoogleMapsApi() {
+            const response = await fetch('/.netlify/functions/get-google-api-key');
+            const apiKey = await response.text();
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+            document.head.appendChild(script);
+
+            script.onload = () => {
+                initializeAutocomplete();
+            };
+        }
+
+        function initializeAutocomplete() {
+            const autocompleteInputs = document.getElementsByClassName('autocomplete-address');
+            for (let i = 0; i < autocompleteInputs.length; i++) {
+                new google.maps.places.Autocomplete(autocompleteInputs[i]);
+            }
+            const currentLocationInput = document.getElementById('current-location');
+            new google.maps.places.Autocomplete(currentLocationInput);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGoogleMapsApi();
+        });
+
+        document.getElementById('route-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const currentLocation = document.getElementById('current-location').value;
+            const addresses = [];
+            const addressInputs = document.getElementsByClassName('autocomplete-address');
+            for (let i = 0; i < addressInputs.length; i++) {
+                addresses.push(addressInputs[i].value);
+            }
+
+            const response = await fetch('/.netlify/functions/server', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ currentLocation, addresses }),
+            });
+            const result = await response.json();
+            document.getElementById('result').innerHTML = `<a href="${result.googleMapsUrl}" target="_blank">Open Route in Google Maps</a>`;
+        });
+    </script>
+</body>
+</html>
