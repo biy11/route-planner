@@ -21,6 +21,7 @@
         async function loadGoogleMapsApi() {
             const response = await fetch('/.netlify/functions/get-google-api-key');
             const apiKey = await response.text();
+            console.log('Fetched API Key:', apiKey);
             const script = document.createElement('script');
             script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
             document.head.appendChild(script);
@@ -52,6 +53,9 @@
                 addresses.push(addressInputs[i].value);
             }
 
+            console.log('Current Location:', currentLocation);
+            console.log('Addresses:', addresses);
+
             const response = await fetch('/.netlify/functions/server', {
                 method: 'POST',
                 headers: {
@@ -59,7 +63,9 @@
                 },
                 body: JSON.stringify({ currentLocation, addresses }),
             });
+
             const result = await response.json();
+            console.log('Result:', result);
             document.getElementById('result').innerHTML = `<a href="${result.googleMapsUrl}" target="_blank">Open Route in Google Maps</a>`;
         });
     </script>

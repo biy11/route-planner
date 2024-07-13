@@ -21,17 +21,23 @@ exports.handler = async (event) => {
     const locations = await Promise.all(addresses.map(address => geocodeAddress(address)));
     const currentLoc = await geocodeAddress(currentLocation);
 
+    console.log('Current Location:', currentLoc);
+    console.log('Locations:', locations);
+
     const waypoints = locations.map(loc => `${loc.lat},${loc.lng}`).join('|');
     const origin = `${currentLoc.lat},${currentLoc.lng}`;
     const destination = waypoints.split('|').pop();
 
     const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
 
+    console.log('Google Maps URL:', googleMapsUrl);
+
     return {
       statusCode: 200,
       body: JSON.stringify({ googleMapsUrl })
     };
   } catch (error) {
+    console.error('Error:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message })
