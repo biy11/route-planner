@@ -19,16 +19,28 @@
 
     <script>
         async function loadGoogleMapsApi() {
-            const response = await fetch('/.netlify/functions/get-google-api-key');
-            const apiKey = await response.text();
-            console.log('Fetched API Key:', apiKey);
-            const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-            document.head.appendChild(script);
+            try {
+                const response = await fetch('/.netlify/functions/get-google-api-key');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch API key');
+                }
+                const apiKey = await response.text();
+                console.log('Fetched API Key:', apiKey);
 
-            script.onload = () => {
-                initializeAutocomplete();
-            };
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+                document.head.appendChild(script);
+
+                script.onload = () => {
+                    initializeAutocomplete();
+                };
+
+                script.onerror = () => {
+                    console.error('Error loading Google Maps script');
+                };
+            } catch (error) {
+                console.error('Error fetching Google API key:', error);
+            }
         }
 
         function initializeAutocomplete() {
