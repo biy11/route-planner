@@ -28,7 +28,23 @@ exports.handler = async (event) => {
     const origin = `${currentLoc.lat},${currentLoc.lng}`;
     const destination = waypoints.split('|').pop();
 
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${waypoints}&travelmode=driving`;
+    // Use Directions API to get the optimized order
+    const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&waypoints=optimize:true|${waypoints}&key=${GOOGLE_API_KEY}`;
+    const directionsResponse = await fetch(directionsUrl);
+    const directionsData = await directionsResponse.json();
+
+    if (directionsData.status !== 'OK') {
+      throw new Error('Directions API failed');
+    }
+
+    const optimizedOrder = directionsData.routes[0].waypoint_order;
+    console.log('Optimized Order:', optimizedOrder);
+
+    // Rearrange waypoints according to the optimized order
+    const optimizedWaypoints = optimizedOrder.map(index => locations[index]);
+    const optimizedWaypointsStr = optimizedWaypoints.map(loc => `${loc.lat},${loc.lng}`).join('|');
+
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${optimizedWaypointsStr}&travelmode=driving`;
 
     console.log('Google Maps URL:', googleMapsUrl);
 
