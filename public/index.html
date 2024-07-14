@@ -126,7 +126,12 @@
                     finalDestination = document.getElementById('final-destination').value;
                 }
 
-                addresses.push(finalDestination);
+                // Include final destination separately
+                const routeData = {
+                    currentLocation,
+                    addresses,
+                    finalDestination
+                };
 
                 try {
                     const response = await fetch('/.netlify/functions/server', {
@@ -134,7 +139,7 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ currentLocation, addresses }),
+                        body: JSON.stringify(routeData),
                     });
 
                     const result = await response.json();

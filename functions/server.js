@@ -6,7 +6,7 @@ dotenv.config();
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
 exports.handler = async (event) => {
-  const { currentLocation, addresses } = JSON.parse(event.body);
+  const { currentLocation, addresses, finalDestination } = JSON.parse(event.body);
 
   const geocodeAddress = async (address) => {
     const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GOOGLE_API_KEY}`);
@@ -20,12 +20,14 @@ exports.handler = async (event) => {
   try {
     const locations = await Promise.all(addresses.map(address => geocodeAddress(address)));
     const currentLoc = await geocodeAddress(currentLocation);
+    const finalDestLoc = await geocodeAddress(finalDestination);
 
     console.log('Current Location:', currentLoc);
     console.log('Locations:', locations);
+    console.log('Final Destination:', finalDestLoc);
 
     const origin = `${currentLoc.lat},${currentLoc.lng}`;
-    const destination = `${currentLoc.lat},${currentLoc.lng}`; // Loop back to origin
+    const destination = `${finalDestLoc.lat},${finalDestLoc.lng}`;
 
     // Use Directions API to get the optimized order
     const waypoints = locations.map(loc => `${loc.lat},${loc.lng}`).join('|');
