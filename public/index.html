@@ -64,6 +64,9 @@
                 script.onerror = () => {
                     console.error('Error loading Google Maps script');
                 };
+
+                // Store API key globally for use in locateMe function
+                window.googleApiKey = apiKey;
             } catch (error) {
                 console.error('Error fetching Google API key:', error);
             }
@@ -101,7 +104,7 @@
                 navigator.geolocation.getCurrentPosition(async (position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_API_KEY}`;
+                    const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${window.googleApiKey}`;
                     const response = await fetch(geocodeUrl);
                     const data = await response.json();
                     if (data.results && data.results.length > 0) {
