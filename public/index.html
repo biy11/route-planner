@@ -13,18 +13,13 @@
                 <label for="current-location">Current Location:</label>
                 <input type="text" id="current-location" name="current-location" class="form-control" required>
             </div>
-            <div class="form-group">
-                <label for="address-1">Address 1:</label>
-                <input type="text" id="address-1" name="address-1" class="form-control autocomplete-address">
+            <div id="addresses-container">
+                <div class="form-group address-group">
+                    <label for="address-1">Address 1:</label>
+                    <input type="text" id="address-1" name="address-1" class="form-control autocomplete-address">
+                </div>
             </div>
-            <div class="form-group">
-                <label for="address-2">Address 2:</label>
-                <input type="text" id="address-2" name="address-2" class="form-control autocomplete-address">
-            </div>
-            <div class="form-group">
-                <label for="address-3">Address 3:</label>
-                <input type="text" id="address-3" name="address-3" class="form-control autocomplete-address">
-            </div>
+            <button type="button" id="add-address" class="btn btn-secondary mb-2">+ Add Address</button>
             <button type="submit" class="btn btn-primary btn-block">Calculate Route</button>
         </form>
         <div id="result" class="mt-4 text-center"></div>
@@ -64,44 +59,62 @@
             for (let i = 0; i < autocompleteInputs.length; i++) {
                 new google.maps.places.Autocomplete(autocompleteInputs[i]);
             }
-            const currentLocationInput = document.getElementById('current-location');
-            new google.maps.places.Autocomplete(currentLocationInput);
+        }
+
+        function addAddressField() {
+            const container = document.getElementById('addresses-container');
+            const addressGroups = container.getElementsByClassName('address-group');
+            const newIndex = addressGroups.length + 1;
+
+            const newAddressGroup = document.createElement('div');
+            newAddressGroup.classList.add('form-group', 'address-group');
+            newAddressGroup.innerHTML = `
+                <label for="address-${newIndex}">Address ${newIndex}:</label>
+                <input type="text" id="address-${newIndex}" name="address-${newIndex}" class="form-control autocomplete-address">
+            `;
+
+            container.appendChild(newAddressGroup);
+
+            // Initialize autocomplete for the new address field
+            new google.maps.places.Autocomplete(newAddressGroup.querySelector('.autocomplete-address'));
         }
 
         document.addEventListener('DOMContentLoaded', function() {
             loadGoogleMapsApi();
-        });
 
-        document.getElementById('route-form').addEventListener('submit', async function(event) {
-            event.preventDefault();
-            document.getElementById('loading').style.display = 'block'; // Show spinner
-            document.getElementById('result').innerHTML = '';
+            document.getElementById('add-address').addEventListener('click', addAddressField);
 
-            const currentLocation = document.getElementById('current-location').value;
-            const addresses = [];
-            const addressInputs = document.getElementsByClassName('autocomplete-address');
-            for (let i = 0; i < addressInputs.length; i++) {
-                if (addressInputs[i].value) {
-                    addresses.push(addressInputs[i].value);
+            document.getElementById('route-form').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                document.getElementById('loading').style.display = 'block'; // Show spinner
+                document.getElementById('result').innerHTML = '';
+
+                const currentLocation = document.getElementById('current-location').value;
+                const addresses = [];
+                const addressInputs = document.getElementsByClassName('autocomplete-address');
+                for (let i = 0; i < addressInputs.length; i++) {
+                    if (addressInputs[i].value) {
+                        addresses.push(addressInputs[i].value);
+                    }
                 }
-            }
 
-            try {
-                const response = await fetch('/.netlify/functions/server', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ currentLocation, addresses }),
-                });
+                try {
+                    const response = await fetch('/.netlify/functions/server', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ currentLocation, addresses }),
+                    });
 
-                const result = await response.json();
-                document.getElementById('result').innerHTML = `<a href="${result.googleMapsUrl}" target="_blank">Open Route in Google Maps</a>`;
-            } catch (error) {
-                document.getElementById('result').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
-            } finally {
-                document.getElementById('loading').style.display = 'none'; // Hide spinner
-            }
+                    const result = await response.json();
+                    document.getElementById('result').innerHTML = `<a href="${result.googleMapsUrl}" target="_blank">Open Route in Google Maps</a>`;
+                } catch (error) {
+                    document.getElementById('result').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+                } finally {
+                    document.getElementById('loading').style.display = 'none'; // Hide spinner
+                }
+            });
         });
     </script>
 </body>
