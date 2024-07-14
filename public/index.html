@@ -20,6 +20,16 @@
                 </div>
             </div>
             <button type="button" id="add-address" class="btn btn-secondary mb-2">+ Add Address</button>
+            
+            <div class="form-check mb-3">
+                <input type="checkbox" class="form-check-input" id="same-as-start">
+                <label class="form-check-label" for="same-as-start">Make final destination same as start location</label>
+            </div>
+            <div class="form-group" id="final-destination-group">
+                <label for="final-destination">Final Destination:</label>
+                <input type="text" id="final-destination" name="final-destination" class="form-control autocomplete-address">
+            </div>
+
             <button type="submit" class="btn btn-primary btn-block">Calculate Route</button>
         </form>
         <div id="result" class="mt-4 text-center"></div>
@@ -59,6 +69,8 @@
             for (let i = 0; i < autocompleteInputs.length; i++) {
                 new google.maps.places.Autocomplete(autocompleteInputs[i]);
             }
+            new google.maps.places.Autocomplete(document.getElementById('current-location'));
+            new google.maps.places.Autocomplete(document.getElementById('final-destination'));
         }
 
         function addAddressField() {
@@ -84,6 +96,15 @@
 
             document.getElementById('add-address').addEventListener('click', addAddressField);
 
+            document.getElementById('same-as-start').addEventListener('change', function() {
+                const finalDestinationGroup = document.getElementById('final-destination-group');
+                if (this.checked) {
+                    finalDestinationGroup.style.display = 'none';
+                } else {
+                    finalDestinationGroup.style.display = 'block';
+                }
+            });
+
             document.getElementById('route-form').addEventListener('submit', async function(event) {
                 event.preventDefault();
                 document.getElementById('loading').style.display = 'block'; // Show spinner
@@ -93,10 +114,19 @@
                 const addresses = [];
                 const addressInputs = document.getElementsByClassName('autocomplete-address');
                 for (let i = 0; i < addressInputs.length; i++) {
-                    if (addressInputs[i].value) {
+                    if (addressInputs[i].value && addressInputs[i].id !== 'final-destination') {
                         addresses.push(addressInputs[i].value);
                     }
                 }
+
+                let finalDestination;
+                if (document.getElementById('same-as-start').checked) {
+                    finalDestination = currentLocation;
+                } else {
+                    finalDestination = document.getElementById('final-destination').value;
+                }
+
+                addresses.push(finalDestination);
 
                 try {
                     const response = await fetch('/.netlify/functions/server', {
