@@ -18,7 +18,7 @@ exports.handler = async (event) => {
   };
 
   try {
-    const locations = await Promise.all(addresses.map(address => geocodeAddress(address)));
+    const locations = await Promise.all(addresses.map(address => geocodeAddress(address.address)));
     const currentLoc = await geocodeAddress(currentLocation);
     const finalDestLoc = await geocodeAddress(finalDestination);
 
@@ -31,7 +31,7 @@ exports.handler = async (event) => {
 
     // Use Directions API to get the optimized order
     const waypoints = locations.map(loc => `${loc.lat},${loc.lng}`).join('|');
-    const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin}&destination=${destination}&waypoints=optimize:true|${waypoints}&key=${GOOGLE_API_KEY}`;
+    const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&waypoints=optimize:true|${encodeURIComponent(waypoints)}&key=${GOOGLE_API_KEY}`;
     console.log('Directions API URL:', directionsUrl); // Log the URL for debugging
 
     const directionsResponse = await fetch(directionsUrl);
@@ -49,7 +49,7 @@ exports.handler = async (event) => {
     const optimizedWaypoints = optimizedOrder.map(index => locations[index]);
     const optimizedWaypointsStr = optimizedWaypoints.map(loc => `${loc.lat},${loc.lng}`).join('|');
 
-    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&waypoints=${optimizedWaypointsStr}&travelmode=driving`;
+    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&waypoints=${encodeURIComponent(optimizedWaypointsStr)}&travelmode=driving`;
 
     console.log('Google Maps URL:', googleMapsUrl);
 
