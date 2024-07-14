@@ -11,7 +11,12 @@
         <form id="route-form" class="p-4 bg-light rounded shadow-sm">
             <div class="form-group">
                 <label for="current-location">Current Location:</label>
-                <input type="text" id="current-location" name="current-location" class="form-control" required>
+                <div class="input-group">
+                    <input type="text" id="current-location" name="current-location" class="form-control" required>
+                    <div class="input-group-append">
+                        <button type="button" id="locate-me" class="btn btn-secondary">Locate Me</button>
+                    </div>
+                </div>
             </div>
             <div id="addresses-container">
                 <div class="form-group address-group">
@@ -91,10 +96,33 @@
             new google.maps.places.Autocomplete(newAddressGroup.querySelector('.autocomplete-address'));
         }
 
+        function locateMe() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${GOOGLE_API_KEY}`;
+                    const response = await fetch(geocodeUrl);
+                    const data = await response.json();
+                    if (data.results && data.results.length > 0) {
+                        document.getElementById('current-location').value = data.results[0].formatted_address;
+                    } else {
+                        alert('Unable to determine your location.');
+                    }
+                }, (error) => {
+                    console.error('Error occurred while retrieving location:', error);
+                    alert('Error occurred while retrieving location.');
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             loadGoogleMapsApi();
 
             document.getElementById('add-address').addEventListener('click', addAddressField);
+            document.getElementById('locate-me').addEventListener('click', locateMe);
 
             document.getElementById('same-as-start').addEventListener('change', function() {
                 const finalDestinationGroup = document.getElementById('final-destination-group');
