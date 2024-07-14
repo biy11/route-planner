@@ -2,21 +2,36 @@
 <html>
 <head>
     <title>Route Planner</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-    <h1>Route Planner</h1>
-    <form id="route-form">
-        <label for="current-location">Current Location:</label>
-        <input type="text" id="current-location" name="current-location" required><br><br>
-        <label for="address-1">Address 1:</label>
-        <input type="text" id="address-1" name="address-1" class="autocomplete-address"><br><br>
-        <label for="address-2">Address 2:</label>
-        <input type="text" id="address-2" name="address-2" class="autocomplete-address"><br><br>
-        <label for="address-3">Address 3:</label>
-        <input type="text" id="address-3" name="address-3" class="autocomplete-address"><br><br>
-        <button type="submit">Calculate Route</button>
-    </form>
-    <div id="result"></div>
+    <div class="container">
+        <h1 class="text-center my-4">Route Planner</h1>
+        <form id="route-form" class="p-4 bg-light rounded shadow-sm">
+            <div class="form-group">
+                <label for="current-location">Current Location:</label>
+                <input type="text" id="current-location" name="current-location" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="address-1">Address 1:</label>
+                <input type="text" id="address-1" name="address-1" class="form-control autocomplete-address">
+            </div>
+            <div class="form-group">
+                <label for="address-2">Address 2:</label>
+                <input type="text" id="address-2" name="address-2" class="form-control autocomplete-address">
+            </div>
+            <div class="form-group">
+                <label for="address-3">Address 3:</label>
+                <input type="text" id="address-3" name="address-3" class="form-control autocomplete-address">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Calculate Route</button>
+        </form>
+        <div id="result" class="mt-4 text-center"></div>
+        <div id="loading" class="spinner-border text-primary" role="status" style="display: none;">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
 
     <script>
         async function loadGoogleMapsApi() {
@@ -59,6 +74,9 @@
 
         document.getElementById('route-form').addEventListener('submit', async function(event) {
             event.preventDefault();
+            document.getElementById('loading').style.display = 'block'; // Show spinner
+            document.getElementById('result').innerHTML = '';
+
             const currentLocation = document.getElementById('current-location').value;
             const addresses = [];
             const addressInputs = document.getElementsByClassName('autocomplete-address');
@@ -68,20 +86,22 @@
                 }
             }
 
-            console.log('Current Location:', currentLocation);
-            console.log('Addresses:', addresses);
+            try {
+                const response = await fetch('/.netlify/functions/server', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ currentLocation, addresses }),
+                });
 
-            const response = await fetch('/.netlify/functions/server', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ currentLocation, addresses }),
-            });
-
-            const result = await response.json();
-            console.log('Result:', result);
-            document.getElementById('result').innerHTML = `<a href="${result.googleMapsUrl}" target="_blank">Open Route in Google Maps</a>`;
+                const result = await response.json();
+                document.getElementById('result').innerHTML = `<a href="${result.googleMapsUrl}" target="_blank">Open Route in Google Maps</a>`;
+            } catch (error) {
+                document.getElementById('result').innerHTML = `<p class="text-danger">Error: ${error.message}</p>`;
+            } finally {
+                document.getElementById('loading').style.display = 'none'; // Hide spinner
+            }
         });
     </script>
 </body>
