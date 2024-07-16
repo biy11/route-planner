@@ -18,7 +18,7 @@ exports.handler = async (event) => {
   };
 
   try {
-    const locations = await Promise.all(addresses.map(address => geocodeAddress(address.address)));
+    const locations = await Promise.all(addresses.map(address => geocodeAddress(address)));
     const currentLoc = await geocodeAddress(currentLocation);
     const finalDestLoc = await geocodeAddress(finalDestination);
 

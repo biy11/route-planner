@@ -5,7 +5,7 @@ async function loadGoogleMapsApi() {
             throw new Error('Failed to fetch API key');
         }
         const apiKey = await response.text();
-        console.log('Fetched API Key:', apiKey);
+        console.log('Fetched API Key');
 
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
