@@ -34,14 +34,43 @@ h1 {
     width: 100%;
 }
 
+.input-group {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.input-group .form-control {
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+}
+
+.input-group-append {
+    flex: 0 0 auto;
+}
+
+.input-group-append .btn {
+    width: auto;
+}
+
 @media (max-width: 600px) {
+    .input-group {
+        flex-direction: column;
+    }
+
+    .input-group .form-control {
+        width: 100%;
+    }
+
+    .input-group-append {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
     .input-group-append .btn {
         width: 100%;
         margin-top: 5px;
-    }
-
-    .input-group {
-        flex-direction: column;
     }
 
     #route-form {
