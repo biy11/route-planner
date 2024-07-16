@@ -1,10 +1,14 @@
 body {
     background-color: #f4f4f4;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
 }
 
 .container {
     max-width: 600px;
-    margin-top: 50px;
+    margin: 50px auto;
+    padding: 0 15px;
 }
 
 h1 {
@@ -13,4 +17,34 @@ h1 {
 
 #loading {
     margin-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+#route-form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#add-address {
+    width: 100%;
+}
+
+@media (max-width: 600px) {
+    .input-group-append .btn {
+        width: 100%;
+        margin-top: 5px;
+    }
+
+    .input-group {
+        flex-direction: column;
+    }
+
+    #route-form {
+        padding: 10px;
+    }
 }
